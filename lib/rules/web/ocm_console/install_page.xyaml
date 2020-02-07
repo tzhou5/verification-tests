@@ -79,13 +79,13 @@ check_aws_ipi_install_page:
     action: click_copyPullSecret_button
     elements:
         - selector:
-            xpath: //a[contains(@href, '/4.2/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
         - selector:
             xpath: //p[contains(., 'install a cluster on Amazon Web Services (AWS) using infrastructure')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_aws/installing-aws-account.html') and contains(.,'official documentation')]
+            xpath: //a[contains(@href, '/latest/installing/installing_aws/installing-aws-account.html') and contains(.,'official documentation')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_aws/installing-aws-account.html') and text()='Configure an AWS account']
+            xpath: //a[contains(@href, '/latest/installing/installing_aws/installing-aws-account.html') and text()='Configure an AWS account']
         - selector:
             xpath: //a[contains(@href, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/') and text()='Download installer']
         - selector:
@@ -101,11 +101,11 @@ check_aws_ipi_install_page:
         - selector:
             xpath: //code[text()='install-config.yaml']
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_aws/installing-aws-customizations.html#installation-configuration-parameters_installing-aws-customizations') and text()='Installation configuration parameters for AWS']
+            xpath: //a[contains(@href, '/latest/installing/installing_aws/installing-aws-customizations.html#installation-configuration-parameters_installing-aws-customizations') and text()='Installation configuration parameters for AWS']
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_aws/installing-aws-customizations.html#installation-aws-config-yaml_installing-aws-customizations') and text()='Sample customized install-config.yaml file for AWS']
+            xpath: //a[contains(@href, '/latest/installing/installing_aws/installing-aws-customizations.html#installation-aws-config-yaml_installing-aws-customizations') and text()='Sample customized install-config.yaml file for AWS']
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_aws/installing-aws-network-customizations.html') and text()='Customizing your network configuration']
+            xpath: //a[contains(@href, '/latest/installing/installing_aws/installing-aws-network-customizations.html') and text()='Customizing your network configuration']
         - selector:
             xpath: //pre[text()='./openshift-install create cluster --dir=<installation_directory>']
         - selector:
@@ -113,7 +113,13 @@ check_aws_ipi_install_page:
         - selector:
             xpath: //pre[text()='export KUBECONFIG=<installation_directory>/auth/kubeconfig' and text()='oc whoami' and text()='system:admin']
         - selector:
-            xpath: //a[contains(@href, '/4.2/welcome/index.html') and text()='Learn more']
+            xpath: //a[contains(@href, '/latest/welcome/index.html') and text()='Learn more']
+required_aws_ipi_install_items_loaded:
+    elements:
+        - selector:
+            xpath: //h1[@class='pf-c-title pf-m-2xl ocm-page-title' and contains(., 'Install OpenShift Container Platform 4')]
+        - selector:
+            xpath: //h3[@class='pf-c-title pf-m-2xl' and contains(., 'Install on AWS with an installer-provisioned infrastructure')]
 check_account_breadcrumbs:
     elements:
         - selector:
@@ -139,19 +145,18 @@ check_breadcrumbs_in_aws_ipi_page:
 
 check_aws_upi_install_page:
     action: required_aws_upi_install_items_loaded
-    action: 
     action: check_aws_upi_page_title
     action: check_breadcrumbs_in_aws_upi_page
     action: click_copyPullSecret_button
     elements:
         - selector:
-            xpath: //a[contains(@href, '/4.2/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
         - selector:
             xpath: //p[contains(., 'install a cluster on Amazon Web Services (AWS) using infrastructure')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_aws_user_infra/installing-aws-user-infra.html') and contains(.,'official documentation')]
+            xpath: //a[contains(@href, '/latest/installing/installing_aws_user_infra/installing-aws-user-infra.html') and contains(.,'official documentation')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_aws_user_infra/installing-aws-user-infra.html') and text()='Get started']
+            xpath: //a[contains(@href, '/latest/installing/installing_aws_user_infra/installing-aws-user-infra.html') and text()='Get started']
         - selector:
             xpath: //a[contains(@href, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/') and text()='Download installer']
         - selector:
@@ -196,9 +201,9 @@ check_azure_install_page:
         - selector:
             xpath: //*[contains(., 'install a cluster on Microsoft Azure using infrastructure')]
         - selector:
-            xpath: //*[contains(@href, '/4.2/installing/installing_azure/installing-azure-account.html') and contains(.,'official documentation')]
+            xpath: //*[contains(@href, '/latest/installing/installing_azure/installing-azure-account.html') and contains(.,'official documentation')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_azure/installing-azure-account.html') and text()='Get started']
+            xpath: //a[contains(@href, '/latest/installing/installing_azure/installing-azure-account.html') and text()='Get started']
         - selector:
             xpath: //a[contains(@href, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/') and text()='Download installer']
         - selector:
@@ -214,7 +219,7 @@ required_azure_install_items_loaded:
         - selector:
             xpath: //h1[@class='pf-c-title pf-m-2xl ocm-page-title' and contains(., 'Install OpenShift Container Platform 4')]
         - selector:
-            xpath: //h3[@class='pf-c-title pf-m-2xl' and contains(., 'Install on Azure with Installer-Provisioned Infrastructure')]
+            xpath: //h3[@class='pf-c-title pf-m-2xl' and contains(., 'Install on Azure with installer-provisioned infrastructure')]
 check_azure_page_title:
     scripts:
     - command: return document.title=='Install OpenShift 4 | Red Hat OpenShift Cluster Manager | Azure'
@@ -245,13 +250,13 @@ check_gcp_install_page:
     action: click_copyPullSecret_button
     elements:
         - selector:
-            xpath: //a[contains(@href, '/4.2/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
         - selector:
             xpath: //p[contains(., 'install a cluster on GCP using infrastructure')]
         - selector:
-            xpath: //*[contains(@href, '/4.2/installing/installing_gcp/installing-gcp-account.html') and contains(.,'official documentation')]
+            xpath: //*[contains(@href, '/latest/installing/installing_gcp/installing-gcp-account.html') and contains(.,'official documentation')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_gcp/installing-gcp-account.html') and text()='Get started']
+            xpath: //a[contains(@href, '/latest/installing/installing_gcp/installing-gcp-account.html') and text()='Get started']
         - selector:
             xpath: //a[contains(@href, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/') and text()='Download installer']
         - selector:
@@ -292,13 +297,13 @@ check_vsphere_install_page:
     action: click_copyPullSecret_button
     elements:
         - selector:
-            xpath: //a[contains(@href, '/4.2/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
         - selector:
             xpath: //p[contains(., 'install a cluster on vSphere using infrastructure')]
         - selector:
-            xpath: //*[contains(@href, '/4.2/installing/installing_vsphere/installing-vsphere.html') and contains(.,'official documentation')]
+            xpath: //*[contains(@href, '/latest/installing/installing_vsphere/installing-vsphere.html') and contains(.,'official documentation')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_vsphere/installing-vsphere.html') and text()='Get started']
+            xpath: //a[contains(@href, '/latest/installing/installing_vsphere/installing-vsphere.html') and text()='Get started']
         - selector:
             xpath: //a[contains(@href, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/') and text()='Download installer']
         - selector:
@@ -310,9 +315,9 @@ check_vsphere_install_page:
         - selector:
             xpath: //button[@id='copyPullSecret' and contains(., 'Copy pull secret')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_vsphere/installing-vsphere.html#installation-vsphere-machines_installing-vsphere') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/installing/installing_vsphere/installing-vsphere.html#installation-vsphere-machines_installing-vsphere') and contains(., 'Learn more')]
         - selector:
-            xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/']/button[contains(., 'Download RHCOS')]
+            xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest/']/button[contains(., 'Download RHCOS')]
         - selector:
             xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/']/button[@type='button' and text()='Download command-line tools']
 required_vsphere_install_items_loaded:
@@ -343,13 +348,13 @@ check_bare_metal_install_page:
     action: click_copyPullSecret_button
     elements:
         - selector:
-            xpath: //a[contains(@href, '/4.2/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
         - selector:
             xpath: //p[contains(., 'install a cluster on bare metal using infrastructure')]
         - selector:
-            xpath: //*[contains(@href, '/4.2/installing/installing_bare_metal/installing-bare-metal.html') and contains(.,'official documentation')]
+            xpath: //*[contains(@href, '/latest/installing/installing_bare_metal/installing-bare-metal.html') and contains(.,'official documentation')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_bare_metal/installing-bare-metal.html') and text()='Get started']
+            xpath: //a[contains(@href, '/latest/installing/installing_bare_metal/installing-bare-metal.html') and text()='Get started']
         - selector:
             xpath: //a[contains(@href, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/') and text()='Download installer']
         - selector:
@@ -361,9 +366,9 @@ check_bare_metal_install_page:
         - selector:
             xpath: //button[@id='copyPullSecret' and contains(., 'Copy pull secret')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_bare_metal/installing-bare-metal.html#creating-machines-bare-metal') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/installing/installing_bare_metal/installing-bare-metal.html#creating-machines-bare-metal') and contains(., 'Learn more')]
         - selector:
-            xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/']/button[contains(., 'Download RHCOS')]
+            xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/latest/']/button[contains(., 'Download RHCOS')]
         - selector:
             xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/']/button[@type='button' and text()='Download command-line tools']
 required_bare_metal_install_items_loaded:
@@ -394,13 +399,13 @@ check_ibm_z_install_page:
     action: click_copyPullSecret_button
     elements:
         - selector:
-            xpath: //a[contains(@href, '/4.2/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
         - selector:
             xpath: //p[contains(., 'install a cluster on IBM Z infrastructure')]
         - selector:
-            xpath: //*[contains(@href, '/4.2/installing/installing_ibm_z/installing-ibm-z.html') and contains(.,'official documentation')]
+            xpath: //*[contains(@href, '/latest/installing/installing_ibm_z/installing-ibm-z.html') and contains(.,'official documentation')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_ibm_z/installing-ibm-z.html') and text()='Get started']
+            xpath: //a[contains(@href, '/latest/installing/installing_ibm_z/installing-ibm-z.html') and text()='Get started']
         - selector:
             xpath: //a[contains(@href, 'https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/latest/') and text()='Download installer']
         - selector:
@@ -408,9 +413,9 @@ check_ibm_z_install_page:
         - selector:
             xpath: //button[@id='copyPullSecret' and contains(., 'Copy pull secret')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_ibm_z/installing-ibm-z.html#installation-user-infra-machines-iso_installing-ibm-z') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/installing/installing_ibm_z/installing-ibm-z.html#installation-user-infra-machines-iso_installing-ibm-z') and contains(., 'Learn more')]
         - selector:
-            xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/4.2/latest/']/button[contains(., 'Download RHCOS')]
+            xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/s390x/dependencies/rhcos/latest/latest/']/button[contains(., 'Download RHCOS')]
         - selector:
             xpath: //a[@href='https://mirror.openshift.com/pub/openshift-v4/s390x/clients/ocp/latest/']/button[@type='button' and text()='Download command-line tools']
 required_ibm_z_install_items_loaded:
@@ -441,13 +446,13 @@ check_openstack_install_page:
     action: click_copyPullSecret_button
     elements:
         - selector:
-            xpath: //a[contains(@href, '/4.2/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
+            xpath: //a[contains(@href, '/latest/support/remote_health_monitoring/about-remote-health-monitoring.html') and contains(., 'Learn more')]
         - selector:
             xpath: //p[contains(., 'install a cluster on Red Hat OpenStack Platform using infrastructure')]
         - selector:
-            xpath: //*[contains(@href, '/4.2/installing/installing_openstack/installing-openstack-installer-custom.html') and contains(.,'official documentation')]
+            xpath: //*[contains(@href, '/latest/installing/installing_openstack/installing-openstack-installer-custom.html') and contains(.,'official documentation')]
         - selector:
-            xpath: //a[contains(@href, '/4.2/installing/installing_openstack/installing-openstack-installer-custom.html') and text()='Get started']
+            xpath: //a[contains(@href, '/latest/installing/installing_openstack/installing-openstack-installer-custom.html') and text()='Get started']
         - selector:
             xpath: //a[contains(@href, 'https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/') and text()='Download installer']
         - selector:
