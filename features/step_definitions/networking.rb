@@ -731,9 +731,13 @@ end
 
 Given /^the bridge interface named "([^"]*)" is deleted from the "([^"]*)" node$/ do |bridge_name, node_name|
   ensure_admin_tagged
+  check_and_delete_inf= %Q(if ip addr show  #{bridge_name};
+                           then 
+                              ip link delete #{bridge_name};
+                           fi)
   node = node(node_name)
   host = node.host
-  @result = host.exec_admin("/sbin/ip link delete #{bridge_name}")
+  @result = host.exec_admin(check_and_delete_inf)
   raise "Failed to delete bridge interface" unless @result[:success]
 end
 
@@ -852,8 +856,7 @@ Given /^the vxlan tunnel name of node "([^"]*)" is stored in the#{OPT_SYM} clipb
   end
   case networkType
   when "OVNKubernetes"
-    inf_name = host.exec_admin("ifconfig | egrep -o '^k8[^:]+'")
-    cb[cb_name] = inf_name[:response].split("\n")[0]
+    cb[cb_name]="ovn-k8s-mp0"
   when "OpenShiftSDN"
     cb[cb_name]="tun0"
   else
@@ -873,8 +876,8 @@ Given /^the vxlan tunnel address of node "([^"]*)" is stored in the#{OPT_SYM} cl
   end
   case networkType
   when "OVNKubernetes"
-    inf_name = host.exec_admin("ifconfig | egrep -o '^k8[^:]+'")
-    @result = host.exec_admin("ifconfig #{inf_name[:response].split("\n")[0]}")
+    inf_name="ovn-k8s-mp0" 
+    @result = host.exec_admin("ifconfig #{inf_name.split("\n")[0]}")
     cb[cb_address] = @result[:response].match(/\d{1,3}\.\d{1,3}.\d{1,3}.\d{1,3}/)[0]
   when "OpenShiftSDN"
     @result=host.exec_admin("ifconfig tun0")
@@ -976,3 +979,13 @@ Given /^the OVN "([^"]*)" database is killed on the "([^"]*)" node$/ do |ovndb, 
   raise "Failed to kill the #{ovndb} database daemon" unless @result[:success]
 end
 
+Given /^OVN is functional on the cluster$/ do
+  ensure_admin_tagged
+  ovnkube_node_ds = daemon_set('ovnkube-node', project('openshift-ovn-kubernetes')).replica_counters(user: admin,cached: false)
+  ovnkube_master_ds = daemon_set('ovnkube-master', project('openshift-ovn-kubernetes')).replica_counters(user: admin,cached: false)
+  desired_ovnkube_node_replicas, available_ovnkube_node_replicas = ovnkube_node_ds.values_at(:desired, :available)
+  desired_ovnkube_master_replicas, available_ovnkube_master_replicas = ovnkube_master_ds.values_at(:desired, :available)
+  
+  raise "OVN is not running correctly! Check one of your ovnkube-node pod" unless desired_ovnkube_node_replicas == available_ovnkube_node_replicas && available_ovnkube_node_replicas != 0
+  raise "OVN is not running correctly! Check one of your ovnkube-master pod" unless desired_ovnkube_master_replicas == available_ovnkube_master_replicas && available_ovnkube_master_replicas != 0
+end

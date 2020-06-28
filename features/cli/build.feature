@@ -61,8 +61,6 @@ Feature: build 'apps' with CLI
 
     Examples:
       | number | build_status |
-      | 517369 | :pending     | # @case_id OCP-11770
-      | 517370 | :running     | # @case_id OCP-11942
       | 517367 | :complete    | # @case_id OCP-11224
       | 517368 | :failed      | # @case_id OCP-11550
 
@@ -72,10 +70,10 @@ Feature: build 'apps' with CLI
     Given I have a project
     And I git clone the repo "https://github.com/openshift/ruby-hello-world.git"
     When I run the :new_build client command with:
-      | image | openshift/ruby   |
-      | code  | ruby-hello-world |
-      | e     | FOO=bar          |
-      | name  | myruby           |
+      | image_stream | openshift/ruby   |
+      | code         | ruby-hello-world |
+      | e            | FOO=bar          |
+      | name         | myruby           |
     Then the step should succeed
     And the "myruby-1" build was created
     And the "myruby-1" build completed
@@ -355,7 +353,6 @@ Feature: build 'apps' with CLI
     Examples:
       | bc_name              | build_name             | file_name                    |
       | ruby-sample-build-ns | ruby-sample-build-ns-1 | tc525736/Nonesrc-sti.json    | # @case_id OCP-11580
-      | ruby-sample-build-nc | ruby-sample-build-nc-1 | tc525735/Nonesrc-docker.json | # @case_id OCP-11268
 
   # @author cryan@redhat.com
   # @case_id OCP-11582
@@ -363,7 +360,7 @@ Feature: build 'apps' with CLI
     Given I have a project
     When I run the :new_build client command with:
       | code         | https://github.com/openshift/ruby-hello-world |
-      | image        | openshift/ruby                                |
+      | image_stream | openshift/ruby                                |
     Then the step should succeed
     Given I run the steps 3 times:
     """
@@ -438,8 +435,8 @@ Feature: build 'apps' with CLI
   Scenario Outline: Cancel multiple new/pending/running builds
     Given I have a project
     When I run the :new_build client command with:
-      | image    | openshift/ruby:latest                            |
-      | app_repo | http://github.com/openshift/ruby-hello-world.git |
+      | image_stream | openshift/ruby:latest                            |
+      | app_repo     | http://github.com/openshift/ruby-hello-world.git |
     Then the step should succeed
     Given I run the steps 5 times:
     """
@@ -573,7 +570,6 @@ Feature: build 'apps' with CLI
 
     Examples:
       | num1 | num2 | num3 | num4 | num5 |
-      | 7    | 10   | 13   | 16   | 19   | # @case_id OCP-11272
       | 5    | 5    | 5    | 5    | 5    | # @case_id OCP-15019
 
   # @author haowang@redhat.com
@@ -748,7 +744,7 @@ Feature: build 'apps' with CLI
       | image | <%= cb.user_image %> |
     Then the step should succeed
     Given a pod becomes ready with labels:
-      | deployment=myapp-1 |
+      | run=myapp |
     When I execute on the pod:
       | ls | -l |
     Then the step should succeed
@@ -782,7 +778,7 @@ Feature: build 'apps' with CLI
       | image | <%= cb.user_image %> |
     Then the step should succeed
     Given a pod becomes ready with labels:
-      | deployment=myapp-1 |
+      | run=myapp |
     When I execute on the pod:
       | ls | -al | .m2 |
     Then the step should succeed
@@ -825,7 +821,7 @@ Feature: build 'apps' with CLI
       | image | <%= cb.user_image %> |
     Then the step should succeed
     Given a pod becomes ready with labels:
-      | deployment=myapp-1 |
+      | run=myapp |
     When I execute on the pod:
       | ls | -al | /aoscm/ |
     Then the step should succeed
@@ -872,7 +868,7 @@ Feature: build 'apps' with CLI
       | image | <%= cb.user_image %> |
     Then the step should succeed
     Given a pod becomes ready with labels:
-      | deployment=myapp-1 |
+      | run=myapp |
     When I execute on the pod:
       | ls | -l |
     And the output should match:
@@ -902,9 +898,8 @@ Feature: build 'apps' with CLI
       | image | <%= cb.user_image %> |
     Then the step should succeed
     Given a pod becomes ready with labels:
-      | deployment=myapp-1 |
+      | run=myapp |
     When I execute on the pod:
       | ls | -l | newdir1/newdir2/newdir3|
     And the output should match:
       | -rw-------.*configmap1.test |
-

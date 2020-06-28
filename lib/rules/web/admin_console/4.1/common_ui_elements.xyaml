@@ -39,9 +39,13 @@ click_button:
     op: click
 click_button_text:
   element:
-    selector:
+    selector: &button_with_text
       xpath: //button[text()='<button_text>']
     op: click
+check_button_text:
+  element:
+    selector:
+      <<: *button_with_text
 check_button_disabled:
   element:
     selector:
@@ -196,10 +200,9 @@ submit_changes:
       xpath: //button[@type='submit']
     op: click
 click_add_more_button:
-  element:
-    selector:
-      xpath: //*[contains(text(),'Add More')]
-    op: click
+  params:
+    button_text: Add More
+  action: click_button
 click_add_dropdown_button:
   element:
     selector:
@@ -224,6 +227,11 @@ click_link_with_text:
   element:
     selector:
       <<: *text_link
+    op: click
+click_link_with_text_only:
+  element:
+    selector:
+      xpath: //a[text()='<text>']
     op: click
 click_secondary_menu:
   elements:

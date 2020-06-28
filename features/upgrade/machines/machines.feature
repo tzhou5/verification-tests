@@ -6,6 +6,11 @@ Feature: Machine-api components upgrade tests
     # So we just add a simple/useless step here to get rid of the errors in the log.
     Given the expression should be true> "True" == "True"
 
+  Examples:
+    | cluster_operator     |
+    | "machine-api"        |
+    | "cluster-autoscaler" |
+
   # @author jhou@redhat.com
   @upgrade-check
   @admin
@@ -59,11 +64,9 @@ Feature: Machine-api components upgrade tests
   Scenario: Scale up and scale down a machineSet after upgrade
     Given I have an IPI deployment
     And I switch to cluster admin pseudo user
+    And I use the "openshift-machine-api" project
 
-    Given I store the number of machines in the :num_to_restore clipboard
-    And admin ensures node number is restored to "<%= cb.num_to_restore %>" after scenario
-
-    Given I clone a machineset named "machineset-clone-22612"
+    Given I clone a machineset and name it "machineset-clone-22612"
 
     Given I scale the machineset to +2
     Then the step should succeed

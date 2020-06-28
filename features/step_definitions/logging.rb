@@ -5,12 +5,14 @@
 Given /^logging service has been installed successfully$/ do
   ensure_destructive_tagged
   ensure_admin_tagged
-  crd_yaml = "#{ENV['BUSHSLICER_HOME']}/testdata/logging/clusterlogging/example.yaml"
-  step %Q/logging operators are installed successfully/
+  if env.version_cmp('4.5', user: user) < 0
+    example_cr = "<%= BushSlicer::HOME %>/testdata/logging/clusterlogging/example.yaml"
+  else
+    example_cr = "<%= BushSlicer::HOME %>/testdata/logging/clusterlogging/example_indexmanagement.yaml"
+  end
   step %Q/I create clusterlogging instance with:/, table(%{
-    | remove_logging_pods | true        |
-    | crd_yaml            | #{crd_yaml} |
-    | log_collector       | fluentd     |
+    | remove_logging_pods | false         |
+    | crd_yaml            | #{example_cr} |
   })
 end
 
@@ -79,6 +81,7 @@ Given /^logging operators are installed successfully$/ do
       end
     end
   end
+  step %Q/elasticsearch operator is ready/
 
   # Create namespace
   unless project('openshift-logging').exists?
@@ -121,8 +124,6 @@ Given /^logging operators are installed successfully$/ do
       end
     end
   end
-
-  step %Q/elasticsearch operator is ready/
   step %Q/cluster logging operator is ready/
 end
 
@@ -162,16 +163,21 @@ Given /^I wait for clusterlogging(?: named "(.+)")? with #{QUOTED} log collector
     | component=elasticsearch |
   })
   cl.wait_until_es_is_ready
-  # check curator, which is a cronjob with the name curator
 
   logger.info("### checking logging subcomponent status: kibana")
   step %Q/a pod becomes ready with labels:/, table(%{
     | component=kibana |
   })
   cl.wait_until_kibana_is_ready
-  # lastly check the curator cronjob.
-  # XXX: the curator pod will not appear immediately after the installation, should we wait for it??
-  raise "Failed to find cronjob for curator" if cron_job('curator').schedule.nil?
+  # lastly check the cronjob. 
+  if env.version_cmp('4.5', user: user) < 0
+    raise "Failed to find cronjob for curator" if cron_job('curator').schedule.nil?
+  else
+    cj_names = ["elasticsearch-delete-app", "elasticsearch-delete-infra", "elasticsearch-rollover-app", "elasticsearch-rollover-infra"]
+    for cj_name in cj_names do
+      raise "Failed to find cronjob for #{cj_name}" if cron_job(cj_name).schedule.nil?
+    end
+  end
 end
 
 # to cleanup OLM installed clusterlogging
@@ -206,31 +212,22 @@ Given /^logging service is removed successfully$/ do
   end
 end
 
-# For 4.x we just check the clusterlogging status for ES components,
-# We have to assume clusterlogging is saved in the cb.cluster_logging
-#
-Given /^I wait(?: for (\d+) seconds)? until fluentd is ready$/ do |seconds|
-  seconds = Integer(seconds) unless seconds.nil?
-  seconds ||= 5 * 60
-  cb.cluster_logging ||= cluster_logging('instance')
-  cl = cb.cluster_logging
-  cl.wait_until_fluentd_is_ready(timeout: seconds)
+Given /^I wait until #{QUOTED} log collector is ready$/ do | log_collector |  
+  step %Q/#{daemon_set(log_collector).replica_counters[:desired]} pods become ready with labels:/, table(%{
+    | logging-infra=#{log_collector} |
+  }) 
 end
 
-Given /^I wait(?: for (\d+) seconds)? until rsyslog is ready$/ do |seconds|
-  seconds = Integer(seconds) unless seconds.nil?
-  seconds ||= 5 * 60
-  cb.cluster_logging ||= cluster_logging('instance')
-  cl = cb.cluster_logging
-  cl.wait_until_rsyslog_is_ready(timeout: seconds)
+Given /^I wait until ES cluster is ready$/ do
+  step %Q/#{cluster_logging('instance').logstore_node_count.to_i} pods become ready with labels:/, table(%{
+    | cluster-name=elasticsearch,component=elasticsearch |
+  }) 
 end
 
-Given /^I wait(?: for (\d+) seconds)? until the ES cluster is healthy$/ do |seconds|
-  seconds = Integer(seconds) unless seconds.nil?
-  seconds ||= 9 * 60
-  cb.cluster_logging ||= cluster_logging('instance')
-  cl = cb.cluster_logging
-  cl.wait_until_es_is_ready(timeout: seconds)
+Given /^I wait until kibana is ready$/ do 
+  step %Q/#{deployment('kibana').replica_counters[:desired]} pods become ready with labels:/, table(%{
+    | component=kibana |
+  }) 
 end
 
 Given /^cluster logging operator is ready$/ do
@@ -261,6 +258,11 @@ Given /^I create clusterlogging instance with:$/ do | table |
   step %Q/I use the "openshift-logging" project/
   logging_ns = "openshift-logging"
   crd_yaml = opts[:crd_yaml]
+  if opts[:check_status].nil?
+    check_status = 'true'
+  else
+    check_status = opts[:check_status]
+  end
 
   if cluster_logging("instance").exists?
     step %Q/I delete the clusterlogging instance/
@@ -273,14 +275,19 @@ Given /^I create clusterlogging instance with:$/ do | table |
       step %Q/I delete the clusterlogging instance/
     }
   end
-  log_collector = opts[:log_collector]
   step %Q/I wait for the "instance" clusterloggings to appear up to 300 seconds/
-  step %Q/I wait for the "elasticsearch" elasticsearches to appear up to 300 seconds/
-  step %Q/I wait for the "kibana" deployment to appear up to 300 seconds/
-  step %Q/I wait for the "#{log_collector}" daemonset to appear up to 300 seconds/
-  # to wait for the status informations to show up in the clusterlogging instance
-  sleep 10
-  step %Q/I wait for clusterlogging with "#{log_collector}" log collector to be functional in the project/
+  if check_status == 'true'
+    step %Q/I wait for the "elasticsearch" elasticsearches to appear up to 300 seconds/
+    step %Q/I wait for the "kibana" deployment to appear up to 300 seconds/
+    log_collector = cluster_logging('instance').collection_type
+    step %Q/I wait for the "#{log_collector}" daemonset to appear up to 300 seconds/
+    # to wait for the status informations to show up in the clusterlogging instance
+    #sleep 10
+    #step %Q/I wait for clusterlogging with "#{log_collector}" log collector to be functional in the project/
+    step %Q/I wait until "#{log_collector}" log collector is ready/
+    step %Q/I wait until ES cluster is ready/
+    step %Q/I wait until kibana is ready/
+  end
 end
 
 Given /^I delete the clusterlogging instance$/ do
@@ -298,6 +305,12 @@ Given /^I delete the clusterlogging instance$/ do
   step %Q/I wait for the resource "cronjob" named "curator" to disappear/
   step %Q/I wait for the resource "daemonset" named "rsyslog" to disappear/
   step %Q/I wait for the resource "daemonset" named "fluentd" to disappear/
+  step %Q/all existing pods die with labels:/, table(%{
+    | component=elasticsearch |
+  })
+  step %Q/all existing pods die with labels:/, table(%{
+    | component=kibana |
+  })
 end
 
 Given /^logging channel name is stored in the#{OPT_SYM} clipboard$/ do | cb_name |
@@ -328,15 +341,55 @@ Given /^the logging operators are redeployed after scenario$/ do
   }
 end
 
+# from logging 4.5, we don't have index project.$project-name.xxxxx, so we need other ways to check the project logs 
+# es_util --query=*/_count -d '{"query": {"match": {"kubernetes.namespace_name": "project-name"}}}'
+# if count > 0, then the project logs are received
+When /^I wait(?: (\d+) seconds)? for the project #{QUOTED} logs to appear in the ES pod(?: with labels #{QUOTED})?$/ do |seconds, project_name, pod_labels|
+  if pod_labels
+    labels = pod_labels
+  else
+    labels = "es-node-master=true"
+  end
+  step %Q/a pod becomes ready with labels:/, table(%{
+    | #{labels} |
+  })
+
+  seconds = Integer(seconds) unless seconds.nil?
+  seconds ||= 10 * 60
+  success = wait_for(seconds) {
+    step %Q/I perform the HTTP request on the ES pod with labels "#{labels}":/, table(%{
+      | relative_url | */_count?format=JSON' -d '{"query": {"match": {"kubernetes.namespace_name": "#{project_name}"}}} |
+      | op           | GET                                                                                              |
+    })
+    res = @result[:parsed]
+    if res
+      res['count'] > 0
+    end
+  }
+  raise "Project '#{project_name}' logs failed to appear in #{seconds} seconds" unless success
+end
+
 Given /^logging eventrouter is installed in the cluster$/ do
   step %Q/admin ensures "event-reader" cluster_role is deleted after scenario/
   step %Q/admin ensures "event-reader-binding" cluster_role_binding is deleted after scenario/
   step %Q/admin ensures "eventrouter" service_account is deleted from the "openshift-logging" project after scenario/
   step %Q/admin ensures "eventrouter" config_map is deleted from the "openshift-logging" project after scenario/
   step %Q/admin ensures "eventrouter" deployment is deleted from the "openshift-logging" project after scenario/
-  @result = admin.cli_exec(:new_app, file: "#{ENV['BUSHSLICER_HOME']}/testdata/logging/eventrouter/internal_eventrouter.yaml")
-  unless @result[:success]
-    raise "Unable to deploy eventrouter"
+  # get image registry from CLO
+  image_registry = deployment('cluster-logging-operator').container_spec(name: 'cluster-logging-operator').image
+  image_version = cluster_version('version').channel.split('-')[1]
+  if image_registry.include?('image-registry.openshift-image-registry.svc:5000')
+    step %Q/I process and create:/, table(%{
+      | f | #{ENV['BUSHSLICER_HOME']}/testdata/logging/eventrouter/internal_eventrouter.yaml |
+    })
+    step %Q/the step should succeed/
+  else
+    registry = image_registry.split('@')[0].gsub("cluster-logging-operator", "logging-eventrouter")
+    step %Q/I process and create:/, table(%{
+      | f | #{ENV['BUSHSLICER_HOME']}/testdata/logging/eventrouter/internal_eventrouter.yaml |
+      | p | IMAGE=#{registry}:v#{image_version}   |
+    })
+    step %Q/the step should succeed/
   end
   step %Q/a pod becomes ready with labels:/, table(%{
     | component=eventrouter |
@@ -399,12 +452,12 @@ Given /^I create the resources for the receiver with:$/ do | table |
   step %Q/I ensures "#{receiver_name}" service is deleted from the "#{namespace}" project after scenario/
   files = [configmap_file, deployment_file]
   for file in files do
-    @result = user.cli_exec(:create, f: file)
+    @result = user.cli_exec(:create, f: file, n: namespace)
     raise "Unable to create resoure with #{file}" unless @result[:success]
   end
   if receiver_name == "rsyslogserver"
     svc_file = "#{ENV['BUSHSLICER_HOME']}/testdata/logging/logforwarding/rsyslog/rsyslogserver_svc.yaml"
-    @result = user.cli_exec(:create, f: svc_file)
+    @result = user.cli_exec(:create, f: svc_file, n: namespace)
     raise "Unable to expose the service for rsyslog server" unless @result[:success]
   else
     @result = user.cli_exec(:expose, name: receiver_name, resource: 'deployment', resource_name: receiver_name, namespace: namespace)
@@ -418,7 +471,6 @@ end
 
 Given /^(fluentd|elasticsearch|rsyslog) receiver is deployed as (secure|insecure)(?: in the#{OPT_QUOTED} project)?$/ do | server, security, project_name |
   project_name ||= "openshift-logging"
-  org_user = user
   project(project_name)
   case server
   when "fluentd"
@@ -435,6 +487,7 @@ Given /^(fluentd|elasticsearch|rsyslog) receiver is deployed as (secure|insecure
         | from_file    | ca-bundle.crt=ca.crt     |
         | from_file    | ca.key=ca.key            |
         | from_literal | shared_key=fluentdserver |
+        | n            | #{project_name}          |
       })
       step %Q/the step should succeed/
       if project_name != "openshift-logging"
@@ -461,6 +514,7 @@ Given /^(fluentd|elasticsearch|rsyslog) receiver is deployed as (secure|insecure
         | from_file   | elasticsearch.key=elasticsearch.key |
         | from_file   | elasticsearch.crt=elasticsearch.crt |
         | from_file   | admin-ca=ca.crt                     |
+        | n           | #{project_name}                     |
       })
       step %Q/the step should succeed/
       step %Q/I create pipelinesecret named "piplinesecret"/

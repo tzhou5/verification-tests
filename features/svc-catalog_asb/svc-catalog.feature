@@ -6,6 +6,9 @@ Feature: Service-catalog related scenarios
   @destructive
   Scenario: service-catalog walkthrough example
     Given I have a project
+    When I run the :get admin command with:
+      | resource | clusterservicebroker |
+    Then the step should succeed
     And evaluation of `project.name` is stored in the :ups_broker_project clipboard
     And I create a new project
     And evaluation of `project.name` is stored in the :user_project clipboard
@@ -84,44 +87,6 @@ Feature: Service-catalog related scenarios
       | resource | clusterserviceclass                                                       |
       | o        | custom-columns=CLASSNAME:.metadata.name,EXTERNAL\ NAME:.spec.externalName |
     Then the output should not contain "user-provided"
-
-  # @author chezhang@redhat.com
-  # @case_id OCP-14833
-  @admin
-  Scenario: Confirm service-catalog image working well
-    When I switch to cluster admin pseudo user
-    And I use the "kube-service-catalog" project
-    Given 1 pods become ready with labels:
-      | app=apiserver |
-    When I execute on the pod:
-      | sh |
-      | -c |
-      | /usr/bin/service-catalog --version; /usr/bin/service-catalog --help |
-    Then the output by order should match:
-      | v[0-9].[0-9].[0-9] |
-      | apiserver          |
-      | controller-manager |
-    Given 1 pods become ready with labels:
-      | app=controller-manager |
-    When I execute on the pod:
-      | sh |
-      | -c |
-      | /usr/bin/service-catalog --version; /usr/bin/service-catalog --help |
-    Then the output by order should match:
-      | v[0-9].[0-9].[0-9] |
-      | apiserver          |
-      | controller-manager |
-    Given I use the "openshift-ansible-service-broker" project
-    And 1 pods become ready with labels:
-      | app=openshift-ansible-service-broker |
-    When I execute on the pod:
-      | sh |
-      | -c |
-      | /usr/bin/asbd --version; /usr/bin/asbd --help |
-    Then the output by order should match:
-      | [0-9].[0-9].[0-9]   |
-      | Application Options |
-      | Help Options        |
 
   # @author chezhang@redhat.com
   # @case_id OCP-15604

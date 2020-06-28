@@ -1,21 +1,4 @@
 Feature: stibuild.feature
-
-  # @author haowang@redhat.com
-  # @case_id OCP-11099
-  Scenario: STI build with invalid context dir
-    Given I have a project
-    When I run the :new_app client command with:
-      | file | <%= BushSlicer::HOME %>/testdata/image/language-image-templates/python-27-rhel7-errordir-stibuild.json |
-    Then the step should succeed
-    When I run the :start_build client command with:
-      | buildconfig | python-sample-build |
-    And the "python-sample-build-1" build was created
-    And the "python-sample-build-1" build failed
-    When I run the :get client command with:
-      | resource | build |
-    Then the output should contain:
-      | InvalidContextDirectory |
-
   # @author xiuwang@redhat.com
   Scenario Outline: Trigger s2i/docker/custom build using additional imagestream
     Given I have a project
@@ -51,47 +34,9 @@ Feature: stibuild.feature
     Examples:
       | template                      |
       | tc498848/tc498848-s2i.json    | # @case_id OCP-12041
-      | tc498847/tc498847-docker.json | # @case_id OCP-11911
-      | tc498846/tc498846-custom.json | # @case_id OCP-11739
-
-  # @author wewang@redhat.com
-  # @case_id OCP-15464
-  Scenario:Override incremental setting using --incremental flag when s2i build request
-    Given I have a project
-    When I run the :new_app client command with:
-      | app_repo | openshift/ruby:2.3~https://github.com/openshift/ruby-hello-world.git |
-    Then the step should succeed
-    And the "ruby-hello-world-1" build was created
-    And the "ruby-hello-world-1" build completed
-    When I run the :patch client command with:
-      | resource      | bc                                                            |
-      | resource_name | ruby-hello-world                                              |
-      | p             | {"spec":{"strategy":{"sourceStrategy":{"incremental":true}}}} |
-    Then the step should succeed
-    When I run the :describe client command with:
-      | resource | buildconfig      |
-      | name     | ruby-hello-world |
-    Then the step should succeed
-    Then the output should match "Incremental Build:\s+yes"
-    When I run the :start_build client command with:
-      | buildconfig | ruby-hello-world |
-      | incremental | true             |
-      Then the step should succeed
-    When I run the :logs client command with:
-      | resource_name | bc/ruby-hello-world |
-    Then the output should contain:
-      | save-artifacts: No such file or directory|
-     When I run the :start_build client command with:
-      | buildconfig | ruby-hello-world |
-      | incremental | false            |
-      Then the step should succeed
-    When I run the :logs client command with:
-      | resource_name | bc/ruby-hello-world |
-    Then the output should not contain:
-      | save-artifacts: No such file or directory|
 
   # @author wzheng@redhat.com
-  # @case_id OCP-11120
+  # @case_id OCP-30858
   Scenario: STI build with dockerImage with specified tag
     Given I have a project
     When I run the :new_app client command with:

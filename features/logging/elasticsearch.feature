@@ -7,13 +7,13 @@ Feature: Elasticsearch related tests
   @destructive
   @commonlogging
   Scenario: Elasticsearch Prometheus metrics can be accessed.
-    And I perform the HTTP request on the ES pod with labels "es-node-master=true":
+    When I perform the HTTP request on the ES pod with labels "es-node-master=true":
       | relative_url | _prometheus/metrics |
       | op           | GET                 |
     Then the step should succeed
     And the output should contain:
-      | es_cluster_nodes_number                   |
-      | es_cluster_shards_active_percent          |
+      | es_cluster_nodes_number          |
+      | es_cluster_shards_active_percent |
 
   # @author qitang@redhat.com
   # @case_id OCP-22050
@@ -36,8 +36,8 @@ Feature: Elasticsearch related tests
     """
     When I process and create:
       | f | <%= BushSlicer::HOME %>/testdata/logging/clusterlogging/clusterlogging-storage-template.yaml |
-      | p | STORAGE_CLASS=<%= cb.default_sc.name %>                                                            |
-      | p | PVC_SIZE=10Gi                                                                                      |
+      | p | STORAGE_CLASS=<%= cb.default_sc.name %>                                                      |
+      | p | PVC_SIZE=10Gi                                                                                |
     Then the step should succeed
     Given I wait for the "instance" clusterloggings to appear
     And the expression should be true> cluster_logging('instance').logstore_storage_class_name == cb.default_sc.name

@@ -17,25 +17,6 @@ Feature: Pod related networking scenarios
     Then the output should contain "address already in use"
     """
 
-  # @author bmeng@redhat.com
-  # @case_id OCP-9802
-  @admin
-  Scenario: The user created docker container in openshift cluster should have outside network access
-    Given I select a random node's host
-    And I run commands on the host:
-      | docker run -td --name=test-container bmeng/hello-openshift |
-    Then the step should succeed
-    And I register clean-up steps:
-    """
-    I run commands on the host:
-      | docker rm -f test-container |
-    the step should succeed
-    """
-    When I run commands on the host:
-      | docker exec test-container curl -sIL www.redhat.com |
-    Then the step should succeed
-    And the output should contain "HTTP/1.1 200 OK"
-
   # @author yadu@redhat.com
   # @case_id OCP-10031
   @smoke
@@ -77,62 +58,6 @@ Feature: Pod related networking scenarios
     And the output should not contain:
       | <%=cb.pod_ip %> |
     """
-
-  # @author yadu@redhat.com
-  # @case_id OCP-16729
-  @admin
-  @destructive
-  Scenario: KUBE-HOSTPORTS chain rules won't be flushing when there is no pod with hostPort
-    Given I have a project
-    And SCC "privileged" is added to the "system:serviceaccounts:<%= project.name %>" group
-    Given I store the schedulable nodes in the :nodes clipboard
-    Given I select a random node's host
-    # Add a fake rule
-    Given I register clean-up steps:
-    """
-    When I run commands on the host:
-      | iptables -t nat -D KUBE-HOSTPORTS -p tcp --dport 110 -j ACCEPT |
-    """
-    When I run commands on the host:
-      | iptables -t nat -A KUBE-HOSTPORTS -p tcp --dport 110 -j ACCEPT |
-    Then the step should succeed
-    When I run commands on the host:
-      | iptables-save \| grep HOSTPORT |
-    Then the step should succeed
-    And the output should contain:
-      | -A PREROUTING -m comment --comment "kube hostport portals" -m addrtype --dst-type LOCAL -j KUBE-HOSTPORTS |
-      | -A OUTPUT -m comment --comment "kube hostport portals" -m addrtype --dst-type LOCAL -j KUBE-HOSTPORTS     |
-      | -A KUBE-HOSTPORTS -p tcp -m tcp --dport 110 -j ACCEPT |
-    #Create a normal pod without hostport
-    Given I switch to the first user
-    And I use the "<%= project.name %>" project
-    When I run oc create over "<%= BushSlicer::HOME %>/testdata/scheduler/pod_with_nodename.json" replacing paths:
-      | ["spec"]["nodeName"] | <%= node.name %> |
-    Then the step should succeed
-    And a pod becomes ready with labels:
-      | name=nodename-pod |
-    Given 30 seconds have passed
-    When I run commands on the host:
-      | iptables-save \| grep HOSTPORT |
-    Then the step should succeed
-    #The rule won't be flushing when there is no pod with hostport
-    And the output should contain:
-      | -A PREROUTING -m comment --comment "kube hostport portals" -m addrtype --dst-type LOCAL -j KUBE-HOSTPORTS |
-      | -A OUTPUT -m comment --comment "kube hostport portals" -m addrtype --dst-type LOCAL -j KUBE-HOSTPORTS     |
-      | -A KUBE-HOSTPORTS -p tcp -m tcp --dport 110 -j ACCEPT |
-    When I run oc create over "<%= BushSlicer::HOME %>/testdata/networking/nodeport_pod.json" replacing paths:
-      | ["spec"]["template"]["spec"]["nodeName"] | <%= node.name %> |
-    Then the step should succeed
-    And a pod becomes ready with labels:
-      | name=rc-test |
-    When I run commands on the host:
-      | iptables-save \| grep HOSTPORT |
-    Then the step should succeed
-    And the output should contain:
-      | hostport 6061" -m tcp --dport 6061 |
-    # The fake rule disappeared after creating a pod with hostport
-    And the output should not contain:
-      | -A KUBE-HOSTPORTS -p tcp --dport 110 -j ACCEPT |
 
   # @author bmeng@redhat.com
   # @case_id OCP-10817
@@ -480,3 +405,40 @@ Feature: Pod related networking scenarios
     | ip route |
   Then the output should contain:
     | <%= cb.pod_cidr %> dev <%= cb.tunnel_inf_name %> |
+    
+  # @author anusaxen@redhat.com
+  # @case_id OCP-26373
+  @admin
+  @destructive
+  Scenario: Pod readiness check for OVN
+    Given the env is using "OVNKubernetes" networkType
+    And OVN is functional on the cluster
+    Given I switch to cluster admin pseudo user
+    And I use the "openshift-ovn-kubernetes" project
+    And a pod is present with labels:
+      | app=ovnkube-node |
+    #Removing CNI config file from container to check readiness probe functionality
+    When I run the :exec client command with:
+      | pod              | <%= pod.name %>                       |
+      | c                | ovnkube-node                          |
+      | oc_opts_end      |                                       |
+      | exec_command     | rm                                    |
+      | exec_command_arg | /etc/cni/net.d/10-ovn-kubernetes.conf |
+    Then the step should succeed
+    #Deleting ovnkube-pod will force CNO to rewrite the conf file and bring cluster back to normal after scenario
+    And admin ensure "<%= pod.name %>" pod is deleted from the "openshift-ovn-kubernetes" project after scenario
+    #Now make sure readiness probe checking above file will cause one of the two ovnkube-node containers to go down and container ready status change to false
+    Given I wait up to 30 seconds for the steps to pass:
+    """
+    When I run the :get admin command with:
+      | resource      | pod                                                                     |
+      | resource_name | <%= pod.name %>                                                         |
+      | o             | jsonpath='{.status.containerStatuses[?(@.name=="ovnkube-node")].ready}' |
+    Then the step should succeed
+    And the output should contain "false"
+    """
+    #Making sure the cluster is in good state before exiting from this scenario
+    And I wait up to 60 seconds for the steps to pass:
+    """
+    OVN is functional on the cluster
+    """

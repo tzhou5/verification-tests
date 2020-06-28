@@ -48,16 +48,51 @@ click_button_text:
     selector: &button_with_text
       xpath: //button[text()='<button_text>']
     op: click
+check_button_text:
+  element:
+    selector:
+      <<: *button_with_text
 click_button_by_id:
   element:
     selector:
       xpath: //button[contains(@id,'<button_id>')]
     op: click
+check_button_contains_text:
+  element:
+    selector:
+      xpath: //button[contains(., '<button_text>')]
+click_radio_input_by_text:
+  element:
+    selector:
+      xpath: //label[contains(.,'<text>')]/input[@type='radio']
+    op: click
+check_disabled_radio_input:
+  element:
+    selector:
+      xpath: //input[@type='radio' and @value='<disabled_radio_text>' and @disabled]
+check_checked_radio_input:
+  element:
+    selector:
+      xpath: //input[@type='radio' and @value='<checked_radio_text>' and @checked]
 check_button_missing:
   element:
     selector:
       <<: *button_with_text
     missing: true
+check_kebab_items_disabled:
+  elements:
+  - selector:
+      xpath: //button[contains(@class, 'pf-c-dropdown__menu-item') and not(contains(@class, 'pf-m-disabled'))]
+    missing: true
+check_action_button_missing:
+  elements:
+  - selector:
+      xpath: //span[contains(text(), 'Actions')]
+    missing: true
+check_save_button_missing:
+  params:
+    button_text: Save
+  action: check_button_missing
 check_table_text_data:
   element:
     selector:
@@ -118,6 +153,11 @@ click_yaml_create_button:
   params:
     button_id: yaml-create
   action: click_button_by_id
+check_yaml_create_button_missing:
+  elements:
+  - selector:
+      xpath: //button[@id='yaml-create']
+    missing: true
 clear_input_value:
   elements:
   - selector:
@@ -334,10 +374,9 @@ submit_changes:
       xpath: //button[@type='submit' and not(@disabled)]
     op: click
 click_add_more_button:
-  element:
-    selector:
-      xpath: //*[contains(text(),'Add More')]
-    op: click
+  params:
+    button_text: Add More
+  action: click_button
 click_add_dropdown_button:
   element:
     selector:
@@ -355,9 +394,9 @@ click_annotation_link:
     op: click
     timeout: 20
 click_annotation_edit_link:
-  elements:
-  - selector:
-      xpath: //*[contains(text(), ' Annotations')]
+  element:
+    selector:
+      xpath: //button[contains(@data-test-id,'edit-annotations')]
     op: click
     timeout: 20
 uncheck_checkbox:
@@ -432,6 +471,15 @@ click_one_item:
 choose_dropdown_item:
   action: click_dropdown_field
   action: click_one_item
+choose_item_from_dropdown_menu:
+  elements:
+  - selector:
+      xpath: //button[contains(@data-test-id, 'dropdown-button')]
+    op: click
+  - selector:
+      xpath: //ul[contains(@class, 'pf-c-dropdown__menu')]
+    timeout: 20
+  action: click_dropdown_menu_item
 upload_file_for_one_field:
   elements:
   - selector:

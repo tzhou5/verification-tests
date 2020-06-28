@@ -8,6 +8,7 @@ goto_resource_page_under_default_project:
   url: k8s/ns/default/<resource_url_name>
 goto_project_resources_page:
   url: k8s/cluster/projects/<project_name>/workloads
+  action: wait_box_loaded
 goto_project_details_page:
   url: k8s/cluster/projects/<project_name>/details
 
@@ -35,6 +36,22 @@ goto_builds_page:
   url: k8s/ns/<project_name>/builds
 goto_one_build_page:
   url: k8s/ns/<project_name>/builds/<build_name>
+goto_one_build_environment_page:
+  url: k8s/ns/<project_name>/builds/<build_name>/environment
+  action: wait_box_loaded
+
+goto_pipelines_list_page:
+  url: k8s/ns/<project_name>/tekton.dev~v1beta1~Pipeline
+  action: wait_box_loaded
+goto_pipeline_resources_list_page:
+  url: k8s/ns/<project_name>/tekton.dev~v1alpha1~PipelineResource
+  action: wait_box_loaded
+goto_tasks_list_page:
+  url: k8s/ns/<project_name>/tekton.dev~v1beta1~Task
+  action: wait_box_loaded
+goto_cluster_tasks_list_page:
+  url: k8s/cluster/tekton.dev~v1beta1~ClusterTask
+  action: wait_box_loaded
 
 #hpa
 goto_hpas_page:
@@ -71,6 +88,7 @@ goto_project_events:
 # environment page
 goto_resource_environment_page:
   url: k8s/ns/<project_name>/<resource_type>/<resource_name>/environment
+  action: wait_box_loaded
 
 # secrets
 goto_secrets_page:
@@ -106,6 +124,7 @@ goto_one_dc_page:
   url: k8s/ns/<project_name>/deploymentconfigs/<dc_name>
 goto_one_rc_page:
   url: k8s/ns/<project_name>/replicationcontrollers/<rc_name>
+  action: wait_box_loaded
 goto_rc_list_page:
   url: k8s/ns/<project_name>/replicationcontrollers
 
@@ -114,6 +133,9 @@ goto_one_pod_page:
   url: k8s/ns/<project_name>/pods/<resource_name>
 goto_one_pod_log_page:
   url: k8s/ns/<project_name>/pods/<pod_name>/logs
+goto_one_pod_environment_page:
+  url: k8s/ns/<project_name>/pods/<pod_name>/environment
+  action: wait_box_loaded
 goto_project_pods_list_page:
   url: k8s/ns/<project_name>/pods
   action: wait_box_loaded
@@ -223,6 +245,7 @@ goto_consoleyamlsample_crd_instances_page:
 # catalog source
 goto_catalog_source_page:
   url: k8s/cluster/config.openshift.io~v1~OperatorHub/cluster/sources
+  action: wait_box_loaded
 
 # quota
 goto_quotas_page:
@@ -240,8 +263,10 @@ goto_users_list_page:
   url: k8s/cluster/user.openshift.io~v1~User
 goto_namespace_role_rolebinding_page:
   url: k8s/ns/<project_name>/roles/<role_name>/bindings
+  action: wait_box_loaded
 goto_cluster_role_rolebinding_page:
   url: k8s/cluster/clusterroles/<role_name>/bindings
+  action: wait_box_loaded
 goto_rolebinding_list_page:
   url: k8s/ns/<project_name>/rolebindings
   action: wait_box_loaded
@@ -265,3 +290,8 @@ goto_one_ImageManifestVuln_page:
 # global config
 goto_alertmanagerconfig_page:
   url: monitoring/alertmanagerconfig
+
+#cluster settings
+goto_cluster_operators:
+  url: settings/cluster/clusteroperators
+  action: wait_box_loaded

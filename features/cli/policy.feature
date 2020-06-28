@@ -60,10 +60,7 @@ Feature: change the policy of user/service account
 
     Given I have a project
     And I switch to the second user
-    When I run the :get client command with:
-      | resource | project |
-    Then the output should match:
-      | <%= project.name %>.*Active |
+    And the expression should be true> project(project.name).active?
 
   # @author xiaocwan@redhat.com
   # @case_id OCP-11442
@@ -83,7 +80,7 @@ Feature: change the policy of user/service account
       | get                                |
       | list                               |
       | watch                              |
-
+    Given I obtain test data file "authorization/policy/projectviewservice.json"
     When I delete matching lines from "projectviewservice.json":
       | "get",       |
     Then the step should succeed
@@ -114,24 +111,6 @@ Feature: change the policy of user/service account
     And the output should not contain:
       | list          |
       | watch         |
-
-  # @author wsun@redhat.com
-  # @case_id OCP-11273
-  @admin
-  Scenario: UserA could impersonate UserB
-    Given I have a project
-    Given cluster role "sudoer" is added to the "first" user
-    When I run the :create client command with:
-      | f | <%= BushSlicer::HOME %>/testdata/daemon/daemonset.yaml |
-    Then the step should fail
-    When I run the :create client command with:
-      | f | <%= BushSlicer::HOME %>/testdata/daemon/daemonset.yaml |
-      | as | system:admin    |
-    Then the step should succeed
-    When I run the :create client command with:
-      | f | <%= BushSlicer::HOME %>/testdata/daemon/daemonset.yaml |
-      | as | <%= user(1, switch: false).name %>    |
-    Then the step should fail
 
   # @author chezhang@redhat.com
   # @case_id OCP-10211
